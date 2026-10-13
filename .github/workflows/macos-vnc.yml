@@ -5,6 +5,16 @@ on:
     branches: [ main ]
   workflow_dispatch:
     inputs:
+      os_runner:
+        description: 'macOS Runner Version (macos-13 recommended for zero black-screen)'
+        required: false
+        default: 'macos-13'
+        type: choice
+        options:
+          - 'macos-13'
+          - 'macos-14'
+          - 'macos-15'
+          - 'macos-latest'
       ngrok_token:
         description: 'Ngrok Auth Token (Optional if set in Repo Secrets)'
         required: false
@@ -25,21 +35,11 @@ on:
           - 'ap'
           - 'us'
           - 'eu'
-      os_runner:
-        description: 'macOS Runner Version'
-        required: false
-        default: 'macos-latest'
-        type: choice
-        options:
-          - 'macos-latest'
-          - 'macos-14'
-          - 'macos-15'
-          - 'macos-13'
 
 jobs:
   macos-desktop:
     name: macOS Desktop Runner
-    runs-on: ${{ github.event.inputs.os_runner || 'macos-latest' }}
+    runs-on: ${{ github.event.inputs.os_runner || 'macos-13' }}
     timeout-minutes: 360 # 6 hours maximum limit on GitHub Actions
 
     steps:
@@ -54,11 +54,16 @@ jobs:
           NGROK_REGION: ${{ github.event.inputs.ngrok_region || 'in' }}
         run: |
           chmod +x scripts/setup_vnc.sh
-          # Resolve token: dispatch input takes precedence, then repository secret
           FINAL_TOKEN="${INPUT_NGROK_TOKEN:-$SECRET_NGROK_TOKEN}"
           ./scripts/setup_vnc.sh "$VNC_PASSWORD" "$FINAL_TOKEN" "$NGROK_REGION"
 
-      - name: Keep-Alive & Encrypted SSH Tunnel (tmate)
-        uses: mxschmitt/action-tmate@v3
-        with:
-          detached: false
+      - name: Keep-Alive Loop (Up to 6 Hours)
+        run: |
+          echo "=========================================================="
+          echo "🟢 macOS Cloud Desktop session is live and interactive!"
+          echo "To stop this runner, click 'Cancel run' in GitHub Actions."
+          echo "=========================================================="
+          # Keepalive loop for 6 hours
+          for ((i=1; i<=360; i++)); do
+            sleep 60
+          done
