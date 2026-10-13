@@ -1,20 +1,17 @@
 name: macOS Cloud Desktop (VNC)
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
     inputs:
       os_runner:
-        description: 'macOS Runner Version (macos-13 recommended for zero black-screen)'
+        description: 'macOS Runner Version'
         required: false
-        default: 'macos-13'
+        default: 'macos-latest'
         type: choice
         options:
-          - 'macos-13'
+          - 'macos-latest'
           - 'macos-14'
           - 'macos-15'
-          - 'macos-latest'
       ngrok_token:
         description: 'Ngrok Auth Token (Optional if set in Repo Secrets)'
         required: false
@@ -39,7 +36,7 @@ on:
 jobs:
   macos-desktop:
     name: macOS Desktop Runner
-    runs-on: ${{ github.event.inputs.os_runner || 'macos-13' }}
+    runs-on: ${{ github.event.inputs.os_runner || 'macos-latest' }}
     timeout-minutes: 360 # 6 hours maximum limit on GitHub Actions
 
     steps:
