@@ -112,3 +112,53 @@ if [ -n "$PINGGY_URL" ]; then
 fi
 
 echo "=========================================================="
+
+# Also write to GitHub Actions Step Summary if in CI environment
+if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+  cat << EOF >> "$GITHUB_STEP_SUMMARY"
+## 🍏 macOS Cloud Desktop Ready!
+
+- **Username:** \`runner\` (or \`runneradmin\`)
+- **Password:** \`$VNC_PASSWORD\`
+- **Resolution:** Default Virtual Retina Display
+
+### ⚡ Connection Methods:
+
+EOF
+
+  if [ "$NGROK_ACTIVE" = "true" ]; then
+    CLEAN_NGROK=$(echo "$NGROK_URL" | sed 's#tcp://##')
+    cat << EOF >> "$GITHUB_STEP_SUMMARY"
+- **Ngrok (Direct TCP):**
+  - Host/Port: \`$CLEAN_NGROK\`
+  - Remmina/VNC Target: \`$CLEAN_NGROK\`
+EOF
+  fi
+
+  if [ -n "$PINGGY_URL" ]; then
+    CLEAN_PINGGY=$(echo "$PINGGY_URL" | sed 's#tcp://##')
+    cat << EOF >> "$GITHUB_STEP_SUMMARY"
+- **Pinggy (Tokenless TCP):**
+  - Host/Port: \`$CLEAN_PINGGY\`
+  - Remmina/VNC Target: \`$CLEAN_PINGGY\`
+EOF
+  fi
+
+  cat << EOF >> "$GITHUB_STEP_SUMMARY"
+
+- **tmate (Encrypted SSH Tunnel):**
+  - Check the live \`action-tmate\` step log for your SSH command.
+  - Forward port: \`ssh -L 5900:localhost:5900 <tmate-user>@<tmate-host>\`
+  - Connect client to: \`localhost:5900\`
+
+### 💻 Kali Linux Quick Connect:
+\`\`\`bash
+# Method 1: Remmina GUI
+remmina & # Choose VNC -> enter the Host/Port above -> password: $VNC_PASSWORD
+
+# Method 2: CLI vncviewer
+vncviewer <HOST>:<PORT>
+\`\`\`
+EOF
+fi
+
